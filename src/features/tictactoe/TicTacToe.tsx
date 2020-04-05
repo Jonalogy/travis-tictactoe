@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import './TicTacToe.scss'
-import { updateMatrix, checkForRowWin, checkForColumnWin } from './utils';
+import { updateMatrix, checkForRowWin, checkForColumnWin, checkForDiagonalWin } from './utils';
 
 const defaultUserTurnState = 1
 const defaultGridState = Array(3).fill(Array(3).fill(0))
@@ -23,6 +23,12 @@ export const TicTacToe = () => {
     let comlumnWin = checkForColumnWin(gridState)
     if(comlumnWin) {
       alert(`Player ${comlumnWin} made a column win!`)
+      return true
+    }
+
+    let diagonalWin = checkForDiagonalWin(gridState)
+    if(diagonalWin) {
+      alert(`Player ${diagonalWin} made a diagonal win!`)
       return true
     }
   }

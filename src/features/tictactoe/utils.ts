@@ -10,14 +10,27 @@ export function updateMatrix(idx: number, userTurn: number, flatGridState: numbe
   ]
 }
 
+export function containsMatchingElement(array: (number)[]): number|null {
+  let sample = array[0];
+  let match = true
+  let idx = 1
+  while((idx < array.length) && match) {
+    if(array[idx] === sample) {
+      idx++
+    } else { 
+      match = false
+    }
+  }
+  return match ? sample : null
+}
+
 export function checkForRowWin(gridState: number[][]): number|null {
 
   let rowStrike = gridState.find((row: number[]) => {
     let rowNotEmpty = row.filter(value => value !== 0).length
     if(
       rowNotEmpty &&
-      row[0]===row[1] &&
-      row[1]===row[2]
+      containsMatchingElement(row)
     ) return true
     return false
   })
@@ -58,16 +71,20 @@ export function checkForColumnWin(gridState: number[][]): IColumnWin|null {
     null
 }
 
-export function containsMatchingElement(array: (number)[]): number|null {
-  let sample = array[0];
-  let match = true
-  let idx = 1
-  while((idx < array.length) && match) {
-    if(array[idx] === sample) {
-      idx++
-    } else { 
-      match = false
-    }
+export function checkForDiagonalWin(gridState: number[][]): number|null {
+  let backwardDiagonalWin = containsMatchingElement(
+    gridState.map((row, idx) => row[idx])
+  )
+  if(backwardDiagonalWin) {
+    return backwardDiagonalWin
   }
-  return match ? sample : null
+
+  let forwardDiagonalWin = containsMatchingElement(
+    gridState.map((row, idx) => row[row.length - (idx + 1)])
+  )
+  if(forwardDiagonalWin) {
+    return forwardDiagonalWin
+  }
+
+  return null
 }

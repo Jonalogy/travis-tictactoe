@@ -1,4 +1,4 @@
-import { checkForRowWin, checkForColumnWin, containsMatchingElement } from "../utils";
+import { checkForRowWin, checkForColumnWin, containsMatchingElement, checkForDiagonalWin } from "../utils";
 
 describe("utils", () => {
   describe("checkForRowWin", () => {
@@ -45,13 +45,40 @@ describe("utils", () => {
       ])
       expect(rowTwoWin).toEqual({ matchingValue: 2, columnIdx: 1 })
     })
-    test("Player 2 wins on the second column", () => {
+    test("No column wins found", () => {
       let rowOneWin = checkForColumnWin([
         [1, 2, 0],
         [2, 1, 1],
         [0, 2, 0]
       ])
       expect(rowOneWin).toBeNull()
+    })
+  })
+  describe("checkForDiagonalWin", () => {
+    test("player 1 wins with backward diagonal", () => {
+      let diagonalOne = [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+      ]
+      expect(checkForDiagonalWin(diagonalOne)).toEqual(1)
+    })
+    test("player 2 wins with forward diagonal", () => {
+      let diagonaltwo = [
+        [0, 0, 2],
+        [0, 2, 0],
+        [2, 0, 0]
+      ]
+      expect(checkForDiagonalWin(diagonaltwo)).toEqual(2)
+    })
+    
+    test("no diagonal wins", () => {
+      let noDiagonalWins = [
+        [0, 0, 2],
+        [0, 0, 0],
+        [2, 0, 0]
+      ]
+      expect(checkForDiagonalWin(noDiagonalWins)).toEqual(null)
     })
   })
 })
