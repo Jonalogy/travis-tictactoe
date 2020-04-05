@@ -1,4 +1,4 @@
-import { checkForRowWin, checkForColumnWin, containsMatchingElement } from "../utilities";
+import { checkForRowWin, checkForColumnWin, containsMatchingElement } from "../utils";
 
 describe("utils", () => {
   describe("checkForRowWin", () => {
