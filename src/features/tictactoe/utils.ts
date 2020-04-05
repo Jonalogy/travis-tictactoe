@@ -1,3 +1,5 @@
+import { IGridState, ITicTacToeState } from "./TicTacToe";
+
 export function updateMatrix(idx: number, userTurn: number, flatGridState: number[]) {
   const newGridState = [...flatGridState]
   if (newGridState[idx] > 0) { return null }
@@ -87,4 +89,89 @@ export function checkForDiagonalWin(gridState: number[][]): number|null {
   }
 
   return null
+}
+
+const checkForWins = (gridState: IGridState) => {
+  let rowWin = checkForRowWin(gridState)
+  if(rowWin) return {
+    player: rowWin,
+    winType: "row"
+  }
+
+  let comlumnWin = checkForColumnWin(gridState)
+  if(comlumnWin) return {
+    player: comlumnWin.matchingValue,
+    winType: "column"
+  }
+
+  let diagonalWin = checkForDiagonalWin(gridState)
+  if(diagonalWin) return {
+    player: diagonalWin,
+    winType: "diagonal"
+  }
+}
+
+interface IComposeProps { 
+  gameState: ITicTacToeState,
+  options: {
+    newGridState?: IGridState,
+    flatGridState: number[],
+    cellIdx: number
+  }
+}
+
+export const updateGridState = (composeProps: IComposeProps): IComposeProps => {
+  let userTurn = composeProps.gameState.userTurn
+  let { cellIdx, flatGridState } = composeProps.options
+  let newGridState = updateMatrix(cellIdx, userTurn, flatGridState)
+  if (newGridState) {
+    return {
+      options: composeProps.options,
+      gameState: {
+        ...composeProps.gameState,
+        gridState: newGridState,
+        userTurn: composeProps.gameState.userTurn === 1 ? 2 : 1
+      }
+    }
+  }
+  return {
+    options: composeProps.options,
+    gameState: {
+      ...composeProps.gameState,
+      warningPrompt: "Please select another cell"
+    }
+  }
+}
+
+export const updateGameLock = (composeProps: IComposeProps): IComposeProps => {
+  let win = checkForWins(composeProps.gameState.gridState)
+  if(win) {
+    return {
+      options: composeProps.options,
+      gameState: {
+        ...composeProps.gameState,
+        gameLockState: true,
+        winPrompt: `Player ${win.player} wins with a ${win.winType}`
+      }
+    }
+  }
+  return composeProps
+}
+
+export const checkForNoMoreMoves = (composeProps: IComposeProps): IComposeProps => {
+  if(composeProps.gameState.gameLockState) return composeProps
+
+  let foundEmptyCells = composeProps.gameState.gridState.flat().find(cellValue => cellValue===0)
+  if(foundEmptyCells === undefined) {
+    return {
+      options: composeProps.options,
+      gameState: {
+        ...composeProps.gameState,
+        gameLockState: true,
+        winPrompt: "No more moves!"
+      }
+    }
+  }
+
+  return composeProps
 }

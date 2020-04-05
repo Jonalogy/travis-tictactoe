@@ -1,57 +1,52 @@
 import React, { useState, useEffect } from 'react'
 import './TicTacToe.scss'
-import { updateMatrix, checkForRowWin, checkForColumnWin, checkForDiagonalWin } from './utils';
+import { updateGridState, updateGameLock, checkForNoMoreMoves } from './utils';
 
-const defaultUserTurnState = 1
-const defaultGridState = Array(3).fill(Array(3).fill(0))
-export const TicTacToe = () => {
-  const [userTurn, updateUserTurn] = useState(defaultUserTurnState)
-  const [gridState, updateGridState] = useState(defaultGridState)
-  const flatGridState = gridState.flat()
+export type IGridState = number[][]
+export interface ITicTacToeState {
+  gridState: IGridState;
+  gameLockState: boolean;
+  userTurn: number;
+  winPrompt: string;
+  warningPrompt: string;
+}
+const defaultTicTacToeState: ITicTacToeState = {
+  gridState: Array(3).fill(Array(3).fill(0)),
+  userTurn: 1,
+  gameLockState: false,
+  winPrompt: "",
+  warningPrompt: ""
+}
 
-  const reset = () => {
-    updateGridState(defaultGridState);
-    updateUserTurn(defaultUserTurnState)
-  }
-  const checkForWins = () => {
-    let rowWin = checkForRowWin(gridState)
-    if(rowWin) {
-      alert(`Player ${rowWin} made a row win!`)
-      return true
-    }
-
-    let comlumnWin = checkForColumnWin(gridState)
-    if(comlumnWin) {
-      alert(`Player ${comlumnWin} made a column win!`)
-      return true
-    }
-
-    let diagonalWin = checkForDiagonalWin(gridState)
-    if(diagonalWin) {
-      alert(`Player ${diagonalWin} made a diagonal win!`)
-      return true
-    }
-  }
-  const checkForNoMoreMoves = () => {
-    let foundEmptyCells = flatGridState.find(cellValue => cellValue===0)
-    if(foundEmptyCells === undefined) {
-      alert("No more turns!")
-      reset()
-    }
-  }
+export const TicTacToe: React.FC<{}> = () => {
+  const [gameState, updateGameState] = useState(defaultTicTacToeState)
+  const flatGridState = gameState.gridState.flat()
 
   useEffect(() => {
-    checkForWins() || checkForNoMoreMoves()
-  })
-
-  const onCellClick = (idx: number, userTurn: number, flatGridState: number[]) => () => {
-    let newGridState = updateMatrix(idx, userTurn, flatGridState)
-    if( newGridState === null) {
-      return alert("Please select another cell")
+    if(gameState.warningPrompt) {
+      alert(gameState.warningPrompt)
+      return updateGameState({
+        ...gameState,
+        warningPrompt: ""
+      })
     }
+    gameState.winPrompt && alert(gameState.winPrompt)
+  }, [gameState])
 
-    updateGridState(newGridState)
-    updateUserTurn(userTurn===1 ? 2 : 1)
+  const reset = () => updateGameState(defaultTicTacToeState)
+  const onCellClick = (idx: number) => {
+    return () => {
+      let newGameState = [
+        updateGridState,
+        updateGameLock,
+        checkForNoMoreMoves
+      ].reduce(
+        (acc, fn) => fn(acc),
+        { gameState, options: { flatGridState, cellIdx: idx } }
+      ).gameState
+
+      updateGameState(newGameState)
+    }
   }
 
   return (
@@ -61,9 +56,9 @@ export const TicTacToe = () => {
           flatGridState
             .map((cellValue: any, idx) => {
               let cellProps = {
-                idx,
                 cellValue,
-                onCellClick: onCellClick(idx, userTurn, flatGridState)
+                lockGame: gameState.gameLockState,
+                onCellClick: onCellClick(idx)
               }
               return <GridCell key={`cell-${idx}`} {...cellProps} />
             })
@@ -74,13 +69,13 @@ export const TicTacToe = () => {
   )
 }
 
+
 const GridCell = (props: any) => {
   return (
-    <React.Fragment >
-      <button className={"grid-item"}
-        onClick={props.onCellClick}>
-        { props.cellValue }
-      </button>
-    </React.Fragment>
+    <button className={"grid-item"}
+      onClick={props.onCellClick}
+      disabled={props.lockGame}>
+      { props.cellValue }
+    </button>
   )
 }
